@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "./proto";
+
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+
+service Greeter {
+  rpc SayHello (HelloRequest) returns (HelloReply) {
+    option (google.api.http) = {
+      post: "/v1/test"
+      body: "*"
+    };
+  }
+}
+
+message HelloRequest {
+  string name = 1 [(validate.rules).string = {min_len: 5, max_len: 10}];
+}
+
+message HelloReply {
+  string message = 1 [(validate.rules).string = {min_len: 5, max_len: 10}];
+}
+

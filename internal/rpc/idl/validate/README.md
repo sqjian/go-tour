@@ -1,0 +1,1 @@
+https://github.com/envoyproxy/protoc-gen-validate/tree/main/validate
