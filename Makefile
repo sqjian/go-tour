@@ -13,3 +13,7 @@ srv:
 .PHONY:cli
 cli:
 	go-tour.exe client
+
+.PHONY: test
+test:
+	go-tour.exe server --gateway="127.0.0.1:50051"

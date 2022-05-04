@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/envoyproxy/protoc-gen-validate v0.1.0
+	github.com/fullstorydev/grpcui v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.0
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.11.0
@@ -15,9 +16,11 @@ require (
 
 require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/fullstorydev/grpcurl v1.8.6 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/jhump/protoreflect v1.11.1-0.20220215191356-c1d18a52a21d // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
