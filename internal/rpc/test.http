@@ -1,0 +1,8 @@
+POST http://127.0.0.1:50052/v1/SayHello
+Content-Type: application/json
+appid: 101010
+appkey: i am key
+
+{
+  "name": "sqjian"
+}
