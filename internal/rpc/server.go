@@ -12,9 +12,12 @@ import (
 	"net"
 )
 
-type server struct{}
+type server struct {
+	proto.UnimplementedGreeterServer
+}
 
 func (s *server) SayHello(ctx context.Context, in *proto.HelloRequest) (*proto.HelloReply, error) {
+
 	err := in.Validate()
 	if err != nil {
 		return nil, err
