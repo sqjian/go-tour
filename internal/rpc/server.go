@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fullstorydev/grpcui/standalone"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/sqjian/go-tour/internal/rpc/idl/proto"
 	"google.golang.org/grpc"
@@ -79,7 +81,14 @@ func startSrv(grpcAddr, gatewayAddr, grpcUiAddr string) error {
 
 	grpcServer, grpcServerErr := func() (*grpc.Server, error) {
 		var opts []grpc.ServerOption
-		opts = append(opts, grpc.UnaryInterceptor(srvInterceptor))
+		opts = append(opts, grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			srvInterceptor,
+			grpc_validator.UnaryServerInterceptor(),
+		)))
+		opts = append(opts, grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
+			grpc_validator.StreamServerInterceptor(),
+		)))
+
 		s := grpc.NewServer(opts...)
 		proto.RegisterGreeterServer(s, &server{})
 		reflection.Register(s)
@@ -114,7 +123,7 @@ func startSrv(grpcAddr, gatewayAddr, grpcUiAddr string) error {
 			return md
 		}),
 	)
-	opts := func() []grpc.DialOption {
+	dopts := func() []grpc.DialOption {
 		var opts []grpc.DialOption
 		opts = append(opts, grpc.WithBlock())
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -138,7 +147,7 @@ func startSrv(grpcAddr, gatewayAddr, grpcUiAddr string) error {
 		conn, err := grpc.DialContext(
 			context.Background(),
 			grpcAddr,
-			opts...,
+			dopts...,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to dial server:%w", err)
@@ -178,7 +187,7 @@ func startSrv(grpcAddr, gatewayAddr, grpcUiAddr string) error {
 		conn, err := grpc.DialContext(
 			context.Background(),
 			grpcAddr,
-			opts...,
+			dopts...,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to dial server:%w", err)

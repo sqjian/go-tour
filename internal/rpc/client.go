@@ -2,9 +2,13 @@ package rpc
 
 import (
 	"fmt"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
+	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/sqjian/go-tour/internal/rpc/idl/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"time"
@@ -32,21 +36,36 @@ func StartCli(addr, port string) error {
 	return startCli(addr, port)
 }
 func startCli(addr, port string) error {
-	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	opts = append(opts, grpc.WithPerRPCCredentials(new(cliCustomCredential)))
-	opts = append(opts, grpc.WithUnaryInterceptor(cliInterceptor))
-	// 连接
-	conn, err := grpc.Dial(fmt.Sprintf("%v:%v", addr, port), opts...)
+	var copts []grpc_retry.CallOption
+	copts = append(copts, grpc_retry.WithBackoff(grpc_retry.BackoffLinear(100*time.Millisecond)))
+	copts = append(copts, grpc_retry.WithCodes(codes.NotFound, codes.Aborted))
+
+	var dopts []grpc.DialOption
+	dopts = append(dopts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	dopts = append(dopts, grpc.WithPerRPCCredentials(new(cliCustomCredential)))
+	dopts = append(dopts, grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
+		cliInterceptor,
+		grpc_retry.UnaryClientInterceptor(copts...),
+		grpc_validator.UnaryClientInterceptor(),
+	)))
+	dopts = append(dopts, grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
+		grpc_retry.StreamClientInterceptor(copts...),
+	)))
+
+	conn, err := grpc.Dial(fmt.Sprintf("%v:%v", addr, port), dopts...)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
-	// 初始化客户端
+
 	c := proto.NewGreeterClient(conn)
-	// 调用方法
 	req := &proto.HelloRequest{Name: "world"}
-	res, err := c.SayHello(context.Background(), req)
+	res, err := c.SayHello(
+		context.Background(),
+		req,
+		grpc_retry.WithMax(3),
+		grpc_retry.WithPerRetryTimeout(1*time.Second),
+	)
 	if err != nil {
 		return err
 	}

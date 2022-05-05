@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/envoyproxy/protoc-gen-validate v0.1.0
 	github.com/fullstorydev/grpcui v1.3.0
+	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.0
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.11.0
